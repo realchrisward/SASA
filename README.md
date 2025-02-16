@@ -42,11 +42,13 @@ This tool is indented to improve analysis of sleep related desaturation events a
      - [ ] median
      - [x] mean
    - [x] # of desat events
-   - [ ] # of desat events with a high amplitude
+   - [x] # of desat events with a high amplitude
    - [ ] # of desat events where starting point was close to threshold vs dropping far below threshold
    - [x] # artifact intervals - make sure to filter artifact (marked as 500) - replace with next valid (backfill)
    - [x] % time desat
- - [ ] produce output report (per subject and aggregate)
+ - [ ] produce output report 
+   - [ ] per subject
+   - [x] aggregate
  - [ ] create easy interface
 
 ## license
