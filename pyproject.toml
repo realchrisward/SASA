@@ -1,0 +1,14 @@
+[project]
+name = "SASA"
+version = "0.1.0"
+description = "Sleep Apnea and Saturation Analysis"
+authors = [{ name = "Christopher Scott Ward", email = "achristopher.ward@bcm.edu" }]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "pandas>=2.2.3",
+    "openpyxl>=3.1.5",
+    "xlsxwriter>=3.2.2"
+]
+
+[project.optional-dependencies]
