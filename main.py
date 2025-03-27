@@ -215,13 +215,13 @@ def prepare_output_dict(
 def main():
     # %%
     # get input files
-    #input_file_path = "./sample data/pooled/"
-    input_file_path = "./sample data/test_cases/"
+    input_file_path = "./sample data/pooled/"
+    # input_file_path = "./sample data/test_cases/"
     # get settings file
     settings_file_path = "./sample settings.xlsx"
     # get output path
-    #output_file_path = "./sample output/"
-    output_file_path = "./test output/"
+    output_file_path = "./sample output/"
+    # output_file_path = "./test output/"
 
     # prepare logger
     logger = logging.getLogger()
@@ -378,13 +378,13 @@ def main():
             window=min_duration, on="ts"
         )["desat"].min()
         night_df["min_dur_desat"] = night_df.rolling(window=min_duration, on="ts")[
-            "desat"
+            "min_dur_desat_trimmed"
         ].max()
         night_df["min_dur_sub_desat_trimmed"] = night_df.rolling(
             window=min_duration, on="ts"
         )["sub desat"].min()
         night_df["min_dur_sub_desat"] = night_df.rolling(window=min_duration, on="ts")[
-            "sub desat"
+            "min_dur_sub_desat_trimmed"
         ].max()
         night_df["min_dur_desat_bout_start"] = (
             night_df["min_dur_desat"].astype(int).diff()
@@ -411,13 +411,13 @@ def main():
         )["desat"].min()
         night_df["sustained_dur_desat"] = night_df.rolling(
             window=sustained_duration, on="ts"
-        )["desat"].max()
+        )["sustained_dur_desat_trimmed"].max()
         night_df["sustained_dur_sub_desat_trimmed"] = night_df.rolling(
             window=sustained_duration, on="ts"
         )["sub desat"].min()
         night_df["sustained_dur_sub_desat"] = night_df.rolling(
             window=sustained_duration, on="ts"
-        )["sub desat"].max()
+        )["sustained_dur_sub_desat_trimmed"].max()
         night_df["sustained_dur_desat_bout_start"] = (
             night_df["sustained_dur_desat"].astype(int).diff()
         )
