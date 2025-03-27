@@ -27,13 +27,13 @@ This tool is indented to improve analysis of sleep related desaturation events a
  - [x] ingest source files
    - [x] Data - 4 second sampling freq, pulse ox O2 data (csv file)
    - [x] Data - manual correction of inaccurate timestamps - need manual offset
- - [ ] Parameters for tuning
+ - [x] Parameters for tuning
    - [x] < 90 is desat
    - [x] minimum desat interval is 10 sec (3, 4 second samples) -- implemented as actual time based comparison
    - [x] sustained desat interval is 30 sec (8, 4 second samples) -- implemented as actual time based comparison
    - [x] a complete night = 10 hours
    - [x] incomplete (6, 4 hours)
-   - [ ] (per subject report and aggregate report clustered by hour)
+   - [ ] <s>(per subject report and aggregate report clustered by hour)</s>
    - [x] study time is 9pm, 7am
  - [ ] score outcome measures
    - [x] # of desat events
@@ -50,6 +50,9 @@ This tool is indented to improve analysis of sleep related desaturation events a
    - [x] per subject
    - [x] aggregate
  - [ ] create easy interface
+ - [ ] revisions (Issue #1)
+   - [ ]  < 85 is severe desat
+   - [ ]  Quality filter
 
 ## license
 MIT-X
