@@ -19,7 +19,7 @@ This tool is indented to improve analysis of sleep related desaturation events a
 3. point the tool to the folder containing the recordings, the settings file, and the desired output folder  
 
 ## assumptions for usage
-- recordings include the following columns: year, month, day, hour, minute, second, pulse, spo2
+- recordings include the following columns: year, month, day, hour, minute, second, pulse, spo2 (column names are case sensitive!)
 - values in hour column use 24hr clock
 - anomolous/artifact/NA values are marked as 500 in pulse and spo2 columns
 
@@ -37,17 +37,17 @@ This tool is indented to improve analysis of sleep related desaturation events a
    - [x] study time is 9pm, 7am
  - [ ] score outcome measures
    - [x] # of desat events
-   - [ ] duration of desat events
+   - [x] duration of desat events
      - [x] cummulative
-     - [ ] median
+     - [x] median
      - [x] mean
    - [x] # of desat events
    - [x] # of desat events with a high amplitude
-   - [ ] # of desat events where starting point was close to threshold vs dropping far below threshold
+   - [x] # of desat events where starting point was close to threshold vs dropping far below threshold
    - [x] # artifact intervals - make sure to filter artifact (marked as 500) - replace with next valid (backfill)
    - [x] % time desat
- - [ ] produce output report 
-   - [ ] per subject
+ - [x] produce output report 
+   - [x] per subject
    - [x] aggregate
  - [ ] create easy interface
 
