@@ -175,3 +175,6 @@ cython_debug/
 
 # uv files
 *.lock
+
+# local_tests
+local_tests
