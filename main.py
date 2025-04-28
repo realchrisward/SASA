@@ -9,7 +9,7 @@ Created: 2025
 License: MIT-X
 """
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 # %% import libraries
 import pandas as pd
@@ -64,7 +64,7 @@ def identify_bin(value, bin_list):
             return i
 
 
-def bout_assembler(start_bouts, stop_bouts):
+def bout_assembler(start_bouts, stop_bouts, df):
     bouts = []
     if start_bouts.shape[0] == 0 or stop_bouts.shape[0] == 0:
         return bouts
@@ -76,8 +76,53 @@ def bout_assembler(start_bouts, stop_bouts):
                     "start": start_bouts.iat[i],
                     "stop": stop_bouts.iat[i + 1],
                     "duration": (stop_bouts.iat[i + 1] - start_bouts.iat[i]).seconds,
+                    #
+                    "artifact_pulse_duration": df[
+                        (df["ts"] >= start_bouts.iat[i])
+                        & (df["ts"] <= stop_bouts.iat[i + 1])
+                        & (df["pulse_NA_filter"] == True)
+                    ]["interval"].sum(),
+                    "artifact_spo2_duration": df[
+                        (df["ts"] >= start_bouts.iat[i])
+                        & (df["ts"] <= stop_bouts.iat[i + 1])
+                        & (df["spo2_NA_filter"] == True)
+                    ]["interval"].sum(),
+                    "artifact_spo2_and_pulse_duration": df[
+                        (df["ts"] >= start_bouts.iat[i])
+                        & (df["ts"] <= stop_bouts.iat[i + 1])
+                        & (df["spo2_and_pulse_NA_filter"] == True)
+                    ]["interval"].sum(),
+                    "artifact_spo2_or_pulse_duration": df[
+                        (df["ts"] >= start_bouts.iat[i])
+                        & (df["ts"] <= stop_bouts.iat[i + 1])
+                        & (df["spo2_or_pulse_NA_filter"] == True)
+                    ]["interval"].sum(),
+                    "duration_min_dur_sev_desat": df[
+                        (df["ts"] >= start_bouts.iat[i])
+                        & (df["ts"] <= stop_bouts.iat[i + 1])
+                        & (df["min_dur_sev_desat"] == True)
+                    ]["interval"].sum(),
+                    "ratio_sev_desat": df[
+                        (df["ts"] >= start_bouts.iat[i])
+                        & (df["ts"] <= stop_bouts.iat[i + 1])
+                        & (df["min_dur_sev_desat"] == True)
+                    ]["interval"].sum()
+                    / (stop_bouts.iat[i + 1] - start_bouts.iat[i]).seconds,
+                    "low_spo2": df[
+                        (df["ts"] >= start_bouts.iat[i])
+                        & (df["ts"] <= stop_bouts.iat[i + 1])
+                    ]["spo2"].min(),
+                    "mean_spo2": df[
+                        (df["ts"] >= start_bouts.iat[i])
+                        & (df["ts"] <= stop_bouts.iat[i + 1])
+                    ]["spo2"].mean(),
+                    "median_spo2": df[
+                        (df["ts"] >= start_bouts.iat[i])
+                        & (df["ts"] <= stop_bouts.iat[i + 1])
+                    ]["spo2"].median(),
                 }
             )
+
     else:
         for i in range(min(start_bouts.shape[0], stop_bouts.shape[0])):
             bouts.append(
@@ -85,6 +130,50 @@ def bout_assembler(start_bouts, stop_bouts):
                     "start": start_bouts.iat[i],
                     "stop": stop_bouts.iat[i],
                     "duration": (stop_bouts.iat[i] - start_bouts.iat[i]).seconds,
+                    #
+                    "artifact_pulse_duration": df[
+                        (df["ts"] >= start_bouts.iat[i])
+                        & (df["ts"] <= stop_bouts.iat[i])
+                        & (df["pulse_NA_filter"] == True)
+                    ]["interval"].sum(),
+                    "artifact_spo2_duration": df[
+                        (df["ts"] >= start_bouts.iat[i])
+                        & (df["ts"] <= stop_bouts.iat[i])
+                        & (df["spo2_NA_filter"] == True)
+                    ]["interval"].sum(),
+                    "artifact_spo2_and_pulse_duration": df[
+                        (df["ts"] >= start_bouts.iat[i])
+                        & (df["ts"] <= stop_bouts.iat[i])
+                        & (df["spo2_and_pulse_NA_filter"] == True)
+                    ]["interval"].sum(),
+                    "artifact_spo2_or_pulse_duration": df[
+                        (df["ts"] >= start_bouts.iat[i])
+                        & (df["ts"] <= stop_bouts.iat[i])
+                        & (df["spo2_or_pulse_NA_filter"] == True)
+                    ]["interval"].sum(),
+                    "duration_min_dur_sev_desat": df[
+                        (df["ts"] >= start_bouts.iat[i])
+                        & (df["ts"] <= stop_bouts.iat[i])
+                        & (df["min_dur_sev_desat"] == True)
+                    ]["interval"].sum(),
+                    "ratio_sev_desat": df[
+                        (df["ts"] >= start_bouts.iat[i])
+                        & (df["ts"] <= stop_bouts.iat[i])
+                        & (df["min_dur_sev_desat"] == True)
+                    ]["interval"].sum()
+                    / (stop_bouts.iat[i + 1] - start_bouts.iat[i]).seconds,
+                    "low_spo2": df[
+                        (df["ts"] >= start_bouts.iat[i])
+                        & (df["ts"] <= stop_bouts.iat[i])
+                    ]["spo2"].min(),
+                    "mean_spo2": df[
+                        (df["ts"] >= start_bouts.iat[i])
+                        & (df["ts"] <= stop_bouts.iat[i])
+                    ]["spo2"].mean(),
+                    "median_spo2": df[
+                        (df["ts"] >= start_bouts.iat[i])
+                        & (df["ts"] <= stop_bouts.iat[i])
+                    ]["spo2"].median(),
                 }
             )
     return bouts
@@ -109,101 +198,119 @@ def prepare_output_dict(
     night_recording_start,
     night_recording_stop,
     subject_df_list,
-    duration,
     night_df,
     desat_bouts,
     subdesat_bouts,
     sustained_desat_bouts,
     sustained_subdesat_bouts,
+    settings
 ):
     output_dict = {
         "night start": night_recording_start,
         "night stop": night_recording_stop,
         "recording files": len(subject_df_list),
-        "duration recording": f"{int(duration.seconds/3600)} hrs, {int((duration.seconds%3600)/60)} min, {int(duration.seconds%60)} sec",
-        "duration artifact": night_df[night_df["NA_filter"] == True]["interval"].sum(),
-        "maximum recording gap": night_df["interval"].max(),
-        "any duration desat": night_df[night_df["desat"] == True]["interval"].sum(),
-        "min duration desat": night_df[night_df["min_dur_desat"] == True][
+        "duration recording (excluding_gaps)": night_df[night_df["gaps"] == False][
             "interval"
         ].sum(),
-        "count min duration desat": night_df[night_df["min_dur_desat_bout_start"] == 1][
-            "ts"
-        ].count(),
-        "avg min duration desat": night_df[night_df["min_dur_desat"] == True][
-            "interval"
-        ].sum()
-        / night_df[night_df["min_dur_desat_bout_start"] == 1]["ts"].count(),
-        "perc time min duration desat": night_df[night_df["min_dur_desat"] == True][
-            "interval"
-        ].sum()
-        / duration.seconds
-        * 100,
-        "sustained duration desat": night_df[night_df["sustained_dur_desat"] == True][
+        "duration recording (including gaps)": night_df["interval"].sum(),
+        "duration of recording gaps": night_df[night_df["gaps"] == True][
             "interval"
         ].sum(),
-        "count sustained duration desat": night_df[
-            night_df["sustained_dur_desat_bout_start"] == 1
-        ]["ts"].count(),
-        "avg sustained duration desat": night_df[
-            night_df["sustained_dur_desat"] == True
-        ]["interval"].sum()
-        / night_df[night_df["sustained_dur_desat_bout_start"] == 1]["ts"].count(),
-        "perc time sustained duration desat": night_df[
-            night_df["sustained_dur_desat"] == True
-        ]["interval"].sum()
-        / duration.seconds
-        * 100,
-        "any duration sub desat": night_df[night_df["sub desat"] == True][
-            "interval"
-        ].sum(),
-        "min duration sub desat": night_df[night_df["min_dur_sub_desat"] == True][
-            "interval"
-        ].sum(),
-        "sustained duration sub desat": night_df[
-            night_df["sustained_dur_sub_desat"] == True
+        "duration spo2 artifact": night_df[
+            (night_df["spo2_NA_filter"] == True) & (night_df["gaps"] == False)
         ]["interval"].sum(),
+        "duration pulse artifact": night_df[
+            (night_df["pulse_NA_filter"] == True) & (night_df["gaps"] == False)
+        ]["interval"].sum(),
+        "duration both artifact": night_df[
+            (night_df["spo2_and_pulse_NA_filter"] == True) & (night_df["gaps"] == False)
+        ]["interval"].sum(),
+        "duration either artifact": night_df[
+            (night_df["spo2_or_pulse_NA_filter"] == True) & (night_df["gaps"] == False)
+        ]["interval"].sum(),
+        "duration of recording gaps": night_df[
+            (night_df["gaps"] == True) & (night_df["gaps"] == False)
+        ]["interval"].sum(),
+        "maximum recording gap": night_df["interval"].max(),
+        "cummulative any duration desat": night_df[night_df["desat"] == True][
+            "interval"
+        ].sum(),
+        "cummulative any duration sev desat": night_df[night_df["sev desat"] == True][
+            "interval"
+        ].sum(),
         "count spike desat": night_df[night_df["spike desat"] == True]["ts"].count(),
-        "bounded desat count": len(desat_bouts),
-        "bounded desat from subdesat count": len(
+        "count desat bouts": len(desat_bouts),
+        "count desat started as subdesat bouts": len(
             [i["started subdesat"] for i in desat_bouts if i == 1]
         ),
-        "bounded desat duration": np.sum([i["duration"] for i in desat_bouts]),
-        "bounded desat mean duration": np.mean([i["duration"] for i in desat_bouts]),
-        "bounded desat median duration": np.median(
+        "sum desat duration": np.sum([i["duration"] for i in desat_bouts]),
+        "mean desat duration": np.mean([i["duration"] for i in desat_bouts]),
+        "median desat duration": np.median(
             [i["duration"] for i in desat_bouts]
         ),
-        "bounded subdesat count": len(subdesat_bouts),
-        "bounded subdesat duration": np.sum([i["duration"] for i in subdesat_bouts]),
-        "bounded subdesat mean duration": np.mean(
+
+        "count subdesat bouts": len(subdesat_bouts),
+        "sum subdesat duration": np.sum([i["duration"] for i in subdesat_bouts]),
+        "mean subdesat duration": np.mean(
             [i["duration"] for i in subdesat_bouts]
         ),
-        "bounded subdesat median duration": np.mean(
+        "median subdesat duration": np.mean(
             [i["duration"] for i in subdesat_bouts]
         ),
-        "bounded sustained desat count": len(sustained_desat_bouts),
-        "bounded sustained desat from subdesat count": len(
+
+        "count sustained desat bouts": len(sustained_desat_bouts),
+        "count sustained desat with pulse artifact bouts": len(
+            [1 for i in sustained_desat_bouts if i["artifact_pulse_duration"]>=settings["artifact duration threshold (sec)"]]
+        ),
+        "count sustained desat with spo2 artifact bouts": len(
+            [1 for i in sustained_desat_bouts if i["artifact_spo2_duration"]>=settings["artifact duration threshold (sec)"]]
+        ),
+        "count sustained desat with spo2 and pulse artifact bouts": len(
+            [1 for i in sustained_desat_bouts if i["artifact_spo2_and_pulse_duration"]>=settings["artifact duration threshold (sec)"]]
+        ),
+        "count sustained desat with spo2 or pulse artifact bouts": len(
+            [1 for i in sustained_desat_bouts if i["artifact_spo2_or_pulse_duration"]>=settings["artifact duration threshold (sec)"]]
+        ),
+        "count sustained desat started as subdesat bouts": len(
             [i["started subesat"] for i in sustained_desat_bouts if i == 1]
         ),
-        "bounded sustained desat duration": np.sum(
+        "sum sustained desat duration": np.sum(
             [i["duration"] for i in sustained_desat_bouts]
         ),
-        "bounded sustained desat mean duration": np.mean(
+        "mean sustained desat duration": np.mean(
             [i["duration"] for i in sustained_desat_bouts]
         ),
-        "bounded sustained desat median duration": np.median(
+        "median sustained desat duration": np.median(
             [i["duration"] for i in sustained_desat_bouts]
         ),
-        "bounded sustained subdesat count": len(sustained_subdesat_bouts),
-        "bounded sustained subdesat duration": np.sum(
-            [i["duration"] for i in sustained_subdesat_bouts]
+        "sum sustained desat non-artifact filtered duration": np.sum(
+            [i["duration"] for i in sustained_desat_bouts if i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
         ),
-        "bounded sustained subdesat mean duration": np.mean(
-            [i["duration"] for i in sustained_subdesat_bouts]
+        "sum sustained desat with sev desat non-artifact filtered duration": np.sum(
+            [i["duration"] for i in sustained_desat_bouts if i["duration_min_dur_sev_desat"]>0 and i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
         ),
-        "bounded sustained subdesat median duration": np.mean(
-            [i["duration"] for i in sustained_subdesat_bouts]
+        "mean sustained desat with sev desat non-artifact filtered duration": np.mean(
+            [i["duration"] for i in sustained_desat_bouts if i["duration_min_dur_sev_desat"]>0 and i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
         ),
+        "median sustained desat with sev desat non-artifact filtered duration": np.median(
+            [i["duration"] for i in sustained_desat_bouts if i["duration_min_dur_sev_desat"]>0 and i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+        ),
+        "mean sustained desat time ratio of sev desat non-artifact filtered": np.mean(
+            [i["ratio_sev_desat"] for i in sustained_desat_bouts if i["duration_min_dur_sev_desat"]>0 and i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+        ),
+        "median sustained desat time ratio of sev desat non-artifact filtered": np.median(
+            [i["ratio_sev_desat"] for i in sustained_desat_bouts if i["duration_min_dur_sev_desat"]>0 and i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+        ),
+        "mean low_spo2 during sustained desat non-artifact filtered": np.mean(
+            [i["low_spo2"] for i in sustained_desat_bouts if i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+        ),
+        "mean mean_spo2 during sustained desat non-artifact filtered": np.mean(
+            [i["mean_spo2"] for i in sustained_desat_bouts if i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+        ),
+        "median median_spo2 during sustained desat non-artifact filtered": np.median(
+            [i["median_spo2"] for i in sustained_desat_bouts if i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+        ),
+        
     }
     return output_dict
 
@@ -216,7 +323,7 @@ def main():
     # %%
     # get input files
     input_file_path = "./sample data/pooled/"
-    # input_file_path = "./sample data/test_cases/"
+    #input_file_path = "./sample data/test_cases/"
     # get settings file
     settings_file_path = "./sample settings.xlsx"
     # get output path
@@ -326,8 +433,18 @@ def main():
 
         # % process file
         # identify and placehold gaps and NA's
-        subject_df["NA_filter"] = subject_df["spo2"] == 500
+        subject_df["spo2_NA_filter"] = subject_df["spo2"] == 500
+        subject_df["pulse_NA_filter"] = subject_df["pulse"] == 500
+        subject_df["spo2_and_pulse_NA_filter"] = (subject_df["spo2"] == 500) & (
+            subject_df["pulse"] == 500
+        )
+        subject_df["spo2_or_pulse_NA_filter"] = (subject_df["spo2"] == 500) | (
+            subject_df["pulse"] == 500
+        )
         subject_df["interval"] = subject_df["ts"].diff().dt.total_seconds()
+        subject_df["gaps"] = (
+            subject_df["interval"] > settings["expected_sampling_rate (sec)"]
+        )
 
         # create fixed o2 column
         subject_df["fixed_spo2"] = subject_df["spo2"]
@@ -370,9 +487,18 @@ def main():
         night_df["sub desat"] = (
             night_df["fixed_spo2"] < settings["desat subthreshold"]
         ) & (night_df["fixed_spo2"] >= settings["desat threshold"])
+        night_df["sev desat"] = night_df < settings["desat severe threshold"]
         night_df["spike desat"] = night_df["diff_spo2"] <= settings["desat spike"]
 
-        # % apply rolling filters (min duration and sustained duration) - apply twice, once to remove too small and second time to refill the time
+        # %% rescore desats that occur after recording gaps to prevent gap inclusion
+        # -- in minimum or sustained bouts
+        night_df.loc[night_df["gaps"] == True, "desat"] = False
+        night_df.loc[night_df["gaps"] == True, "sub desat"] = False
+        night_df.loc[night_df["gaps"] == True, "sev desat"] = False
+        night_df.loc[night_df["gaps"] == True, "spike desat"] = False
+
+        # % apply rolling filters (min duration and sustained duration)
+        # - apply twice, once to remove too small and second time to refill the time
         min_duration = pd.Timedelta(seconds=settings["minimum desat interval (sec)"])
         night_df["min_dur_desat_trimmed"] = night_df.rolling(
             window=min_duration, on="ts"
@@ -386,11 +512,21 @@ def main():
         night_df["min_dur_sub_desat"] = night_df.rolling(window=min_duration, on="ts")[
             "min_dur_sub_desat_trimmed"
         ].max()
+        night_df["min_dur_sev_desat_trimmed"] = night_df.rolling(
+            window=min_duration, on="ts"
+        )["sev desat"].min()
+        night_df["min_dur_sev_desat"] = night_df.rolling(window=min_duration, on="ts")[
+            "min_dur_sev_desat_trimmed"
+        ].max()
+
         night_df["min_dur_desat_bout_start"] = (
             night_df["min_dur_desat"].astype(int).diff()
         )
         night_df["min_dur_sub_desat_bout_start"] = (
             night_df["min_dur_sub_desat"].astype(int).diff()
+        )
+        night_df["min_dur_sev_desat_bout_start"] = (
+            night_df["min_dur_sev_desat"].astype(int).diff()
         )
 
         desat_start_bouts = night_df["ts"][night_df["min_dur_desat_bout_start"] == 1]
@@ -402,6 +538,13 @@ def main():
         subdesat_stop_bouts = night_df["ts"][
             night_df["min_dur_sub_desat_bout_start"] == -1
         ]
+
+        sevdesat_start_bouts = (
+            night_df["ts"][night_df["min_dur_sev_desat_bout_start"]] == 1
+        )
+        sevdesat_stop_bouts = (
+            night_df["ts"][night_df["min_dur_sev_desat_bout_start"]] == -1
+        )
 
         sustained_duration = pd.Timedelta(
             seconds=settings["sustained desat interval (sec)"]
@@ -418,11 +561,21 @@ def main():
         night_df["sustained_dur_sub_desat"] = night_df.rolling(
             window=sustained_duration, on="ts"
         )["sustained_dur_sub_desat_trimmed"].max()
+        night_df["sustained_dur_sev_desat_trimmed"] = night_df.rolling(
+            window=sustained_duration, on="ts"
+        )["sev desat"].min()
+        night_df["sustained_dur_sev_desat"] = night_df.rolling(
+            window=sustained_duration, on="ts"
+        )["sustained_dur_sev_desat_trimmed"].max()
+
         night_df["sustained_dur_desat_bout_start"] = (
             night_df["sustained_dur_desat"].astype(int).diff()
         )
         night_df["sustained_dur_sub_desat_bout_start"] = (
             night_df["sustained_dur_sub_desat"].astype(int).diff()
+        )
+        night_df["sustained_dur_sev_desat_bout_start"] = (
+            night_df["sustained_dur_sev_desat"].astype(int).diff()
         )
 
         sustained_desat_start_bouts = night_df["ts"][
@@ -439,16 +592,33 @@ def main():
             night_df["sustained_dur_sub_desat_bout_start"] == -1
         ]
 
-        subdesat_bouts = bout_assembler(subdesat_start_bouts, subdesat_stop_bouts)
+        sustained_sevdesat_start_bouts = night_df["ts"][
+            night_df["sustained_dur_sev_desat_bout_start"] == 1
+        ]
+        sustained_sevdesat_stop_bouts = night_df["ts"][
+            night_df["sustained_dur_sev_desat_bout_start"] == -1
+        ]
+
+        subdesat_bouts = bout_assembler(
+            subdesat_start_bouts, subdesat_stop_bouts, night_df
+        )
         sustained_subdesat_bouts = bout_assembler(
-            sustained_subdesat_start_bouts, sustained_subdesat_stop_bouts
+            sustained_subdesat_start_bouts, sustained_subdesat_stop_bouts, night_df
         )
         desat_bouts = flag_subdesat_starts(
-            bout_assembler(desat_start_bouts, desat_stop_bouts), night_df
+            bout_assembler(desat_start_bouts, desat_stop_bouts, night_df), night_df
         )
         sustained_desat_bouts = flag_subdesat_starts(
-            bout_assembler(sustained_desat_start_bouts, sustained_desat_stop_bouts),
+            bout_assembler(
+                sustained_desat_start_bouts, sustained_desat_stop_bouts, night_df
+            ),
             night_df,
+        )
+        sevdesat_bouts = bout_assembler(
+            sevdesat_start_bouts, sevdesat_stop_bouts, night_df
+        )
+        sustained_sevdesat_bouts = bout_assembler(
+            sustained_sevdesat_start_bouts, sustained_sevdesat_stop_bouts, night_df
         )
 
         # %
@@ -456,12 +626,14 @@ def main():
             night_recording_start,
             night_recording_stop,
             subject_df_list,
-            duration,
             night_df,
             desat_bouts,
             subdesat_bouts,
+            sevdesat_bouts,
             sustained_desat_bouts,
             sustained_subdesat_bouts,
+            sustained_sevdesat_bouts,
+            settings
         )
         output_dict["night_duration_bins"][duration_bin][subject_id] = output_summary
 
