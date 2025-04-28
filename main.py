@@ -285,6 +285,12 @@ def prepare_output_dict(
         "median sustained desat duration": np.median(
             [i["duration"] for i in sustained_desat_bouts]
         ),
+        "count sustained desat non-artifact filtered bouts": np.sum(
+            [1 for i in sustained_desat_bouts if i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+        ),
+        "count sustained desat with sev desat non-artifact filtered bouts": np.sum(
+            [1 for i in sustained_desat_bouts if i["duration_min_dur_sev_desat"]>0 and i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+        ),
         "sum sustained desat non-artifact filtered duration": np.sum(
             [i["duration"] for i in sustained_desat_bouts if i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
         ),

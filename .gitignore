@@ -180,3 +180,5 @@ cython_debug/
 local_tests
 sample data/*
 sample output/*
+sample_data/*
+sample_output/*
