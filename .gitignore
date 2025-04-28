@@ -178,3 +178,5 @@ cython_debug/
 
 # local_tests
 local_tests
+sample data/*
+sample output/*
