@@ -161,7 +161,7 @@ def bout_assembler(start_bouts, stop_bouts, df):
                         & (df["ts"] <= stop_bouts.iat[i])
                         & (df["min_dur_sev_desat"] == True)
                     ]["interval"].sum()
-                    / (stop_bouts.iat[i + 1] - start_bouts.iat[i]).seconds,
+                    / (stop_bouts.iat[i] - start_bouts.iat[i]).seconds,
                     "low_spo2": df[
                         (df["ts"] >= start_bouts.iat[i])
                         & (df["ts"] <= stop_bouts.iat[i])
@@ -201,8 +201,10 @@ def prepare_output_dict(
     night_df,
     desat_bouts,
     subdesat_bouts,
+    sevdesat_bouts,
     sustained_desat_bouts,
     sustained_subdesat_bouts,
+    sustained_sevdesat_bouts,
     settings
 ):
     output_dict = {
@@ -469,25 +471,27 @@ def main():
         night_recording_stop = night_df["ts"].iloc[-1]
 
         # % determine which overnight bin to use
-        duration = night_recording_stop - night_recording_start
+        duration = night_df[night_df["gaps"]==False]["interval"].sum()
         duration_hours = int(
             (
-                duration.seconds
+                duration
                 + settings["night duration round up within (minutes)"] * 60
             )
             / 60
             / 60
         )
+        
         duration_bin = identify_bin(
             duration_hours, list(output_dict["night_duration_bins"].keys())
         )
+        logger.info(f'duration (sec):{duration}; duration (hrs):{duration_hours}; bin: {duration_bin}')
 
         # % score desat events
         night_df["desat"] = night_df["fixed_spo2"] < settings["desat threshold"]
         night_df["sub desat"] = (
             night_df["fixed_spo2"] < settings["desat subthreshold"]
         ) & (night_df["fixed_spo2"] >= settings["desat threshold"])
-        night_df["sev desat"] = night_df < settings["desat severe threshold"]
+        night_df["sev desat"] = night_df["fixed_spo2"] < settings["desat severe threshold"]
         night_df["spike desat"] = night_df["diff_spo2"] <= settings["desat spike"]
 
         # %% rescore desats that occur after recording gaps to prevent gap inclusion
@@ -501,21 +505,21 @@ def main():
         # - apply twice, once to remove too small and second time to refill the time
         min_duration = pd.Timedelta(seconds=settings["minimum desat interval (sec)"])
         night_df["min_dur_desat_trimmed"] = night_df.rolling(
-            window=min_duration, on="ts"
+            window=min_duration, on="ts", center=True
         )["desat"].min()
-        night_df["min_dur_desat"] = night_df.rolling(window=min_duration, on="ts")[
+        night_df["min_dur_desat"] = night_df.rolling(window=min_duration, on="ts", center=True)[
             "min_dur_desat_trimmed"
         ].max()
         night_df["min_dur_sub_desat_trimmed"] = night_df.rolling(
-            window=min_duration, on="ts"
+            window=min_duration, on="ts", center=True
         )["sub desat"].min()
-        night_df["min_dur_sub_desat"] = night_df.rolling(window=min_duration, on="ts")[
+        night_df["min_dur_sub_desat"] = night_df.rolling(window=min_duration, on="ts", center=True)[
             "min_dur_sub_desat_trimmed"
         ].max()
         night_df["min_dur_sev_desat_trimmed"] = night_df.rolling(
-            window=min_duration, on="ts"
+            window=min_duration, on="ts", center=True
         )["sev desat"].min()
-        night_df["min_dur_sev_desat"] = night_df.rolling(window=min_duration, on="ts")[
+        night_df["min_dur_sev_desat"] = night_df.rolling(window=min_duration, on="ts", center=True)[
             "min_dur_sev_desat_trimmed"
         ].max()
 
@@ -540,32 +544,32 @@ def main():
         ]
 
         sevdesat_start_bouts = (
-            night_df["ts"][night_df["min_dur_sev_desat_bout_start"]] == 1
+            night_df["ts"][night_df["min_dur_sev_desat_bout_start"] == 1]
         )
         sevdesat_stop_bouts = (
-            night_df["ts"][night_df["min_dur_sev_desat_bout_start"]] == -1
+            night_df["ts"][night_df["min_dur_sev_desat_bout_start"]== -1]
         )
 
         sustained_duration = pd.Timedelta(
             seconds=settings["sustained desat interval (sec)"]
         )
         night_df["sustained_dur_desat_trimmed"] = night_df.rolling(
-            window=sustained_duration, on="ts"
+            window=sustained_duration, on="ts", center=True
         )["desat"].min()
         night_df["sustained_dur_desat"] = night_df.rolling(
-            window=sustained_duration, on="ts"
+            window=sustained_duration, on="ts", center=True
         )["sustained_dur_desat_trimmed"].max()
         night_df["sustained_dur_sub_desat_trimmed"] = night_df.rolling(
-            window=sustained_duration, on="ts"
+            window=sustained_duration, on="ts", center=True
         )["sub desat"].min()
         night_df["sustained_dur_sub_desat"] = night_df.rolling(
-            window=sustained_duration, on="ts"
+            window=sustained_duration, on="ts", center=True
         )["sustained_dur_sub_desat_trimmed"].max()
         night_df["sustained_dur_sev_desat_trimmed"] = night_df.rolling(
-            window=sustained_duration, on="ts"
+            window=sustained_duration, on="ts", center=True
         )["sev desat"].min()
         night_df["sustained_dur_sev_desat"] = night_df.rolling(
-            window=sustained_duration, on="ts"
+            window=sustained_duration, on="ts", center=True
         )["sustained_dur_sev_desat_trimmed"].max()
 
         night_df["sustained_dur_desat_bout_start"] = (
