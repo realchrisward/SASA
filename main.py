@@ -120,6 +120,22 @@ def bout_assembler(start_bouts, stop_bouts, df):
                         (df["ts"] >= start_bouts.iat[i])
                         & (df["ts"] <= stop_bouts.iat[i + 1])
                     ]["spo2"].median(),
+                    "low_pulse": df[
+                        (df["ts"] >= start_bouts.iat[i])
+                        & (df["ts"] <= stop_bouts.iat[i + 1])
+                    ]["pulse"].min(),
+                    "high_pulse": df[
+                        (df["ts"] >= start_bouts.iat[i])
+                        & (df["ts"] <= stop_bouts.iat[i + 1])
+                    ]["pulse"].max(),
+                    "mean_pulse": df[
+                        (df["ts"] >= start_bouts.iat[i])
+                        & (df["ts"] <= stop_bouts.iat[i + 1])
+                    ]["pulse"].mean(),
+                    "median_pulse": df[
+                        (df["ts"] >= start_bouts.iat[i])
+                        & (df["ts"] <= stop_bouts.iat[i + 1])
+                    ]["pulse"].median(),
                 }
             )
 
@@ -178,6 +194,10 @@ def bout_assembler(start_bouts, stop_bouts, df):
                         (df["ts"] >= start_bouts.iat[i])
                         & (df["ts"] <= stop_bouts.iat[i])
                     ]["pulse"].min(),
+                    "high_pulse": df[
+                        (df["ts"] >= start_bouts.iat[i])
+                        & (df["ts"] <= stop_bouts.iat[i])
+                    ]["pulse"].max(),
                     "mean_pulse": df[
                         (df["ts"] >= start_bouts.iat[i])
                         & (df["ts"] <= stop_bouts.iat[i])
@@ -334,13 +354,16 @@ def prepare_output_dict(
         "mean low_pulse during sustained desat non-artifact filtered": np.mean(
             [i["low_pulse"] for i in sustained_desat_bouts if i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
         ),
+        "mean high_pulse during sustained desat non-artifact filtered": np.mean(
+            [i["high_pulse"] for i in sustained_desat_bouts if i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+        ),
         "mean mean_pulse during sustained desat non-artifact filtered": np.mean(
             [i["mean_pulse"] for i in sustained_desat_bouts if i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
         ),
         "median median_pulse during sustained desat non-artifact filtered": np.median(
             [i["median_pulse"] for i in sustained_desat_bouts if i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
         ),
-        "mean pulse during non_desat and non_artifact": night_df[(night_df["desat"]>settings["desat threshold"]) & (night_df["spo2_or_pulse_NA_filter"] == False)]["pulse"].mean()
+        "mean pulse during non_desat and non_artifact": night_df[(night_df["spo2"]>settings["desat threshold"]) & (night_df["spo2_or_pulse_NA_filter"] == False)]["pulse"].mean()
         
     }
     return output_dict
