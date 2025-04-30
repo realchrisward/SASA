@@ -174,6 +174,19 @@ def bout_assembler(start_bouts, stop_bouts, df):
                         (df["ts"] >= start_bouts.iat[i])
                         & (df["ts"] <= stop_bouts.iat[i])
                     ]["spo2"].median(),
+                    "low_pulse": df[
+                        (df["ts"] >= start_bouts.iat[i])
+                        & (df["ts"] <= stop_bouts.iat[i])
+                    ]["pulse"].min(),
+                    "mean_pulse": df[
+                        (df["ts"] >= start_bouts.iat[i])
+                        & (df["ts"] <= stop_bouts.iat[i])
+                    ]["pulse"].mean(),
+                    "median_pulse": df[
+                        (df["ts"] >= start_bouts.iat[i])
+                        & (df["ts"] <= stop_bouts.iat[i])
+                    ]["pulse"].median(),
+
                 }
             )
     return bouts
@@ -318,6 +331,16 @@ def prepare_output_dict(
         "median median_spo2 during sustained desat non-artifact filtered": np.median(
             [i["median_spo2"] for i in sustained_desat_bouts if i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
         ),
+        "mean low_pulse during sustained desat non-artifact filtered": np.mean(
+            [i["low_pulse"] for i in sustained_desat_bouts if i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+        ),
+        "mean mean_pulse during sustained desat non-artifact filtered": np.mean(
+            [i["mean_pulse"] for i in sustained_desat_bouts if i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+        ),
+        "median median_pulse during sustained desat non-artifact filtered": np.median(
+            [i["median_pulse"] for i in sustained_desat_bouts if i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+        ),
+        "mean pulse during non_desat and non_artifact": night_df[(night_df["desat"]>settings["desat threshold"]) & (night_df["spo2_or_pulse_NA_filter"] == False)]["pulse"].mean()
         
     }
     return output_dict
