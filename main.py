@@ -542,7 +542,7 @@ def main():
         # % score desat events
         night_df["desat"] = night_df["fixed_spo2"] < settings["desat threshold"]
         night_df["sub desat"] = (
-            night_df["fixed_spo2"] < settings["desat subthreshold"]
+            night_df["fixed_spo2"] <= settings["desat subthreshold"]
         ) & (night_df["fixed_spo2"] >= settings["desat threshold"])
         night_df["sev desat"] = night_df["fixed_spo2"] < settings["desat severe threshold"]
         night_df["spike desat"] = night_df["diff_spo2"] <= settings["desat spike"]
