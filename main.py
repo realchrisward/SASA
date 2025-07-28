@@ -507,6 +507,7 @@ def main():
             {"fixed_pulse": {500: np.nan}, "fixed_spo2": {500: np.nan}}, inplace=True
         )
         subject_df.bfill(inplace=True)
+        subject_df.ffill(inplace=True)
 
         # create instantaneous o2 diff collumn
         subject_df["diff_spo2"] = subject_df["fixed_spo2"].diff()
