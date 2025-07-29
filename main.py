@@ -206,7 +206,6 @@ def bout_assembler(start_bouts, stop_bouts, df):
                         (df["ts"] >= start_bouts.iat[i])
                         & (df["ts"] <= stop_bouts.iat[i])
                     ]["pulse"].median(),
-
                 }
             )
     return bouts
@@ -228,17 +227,17 @@ def flag_subdesat_starts(bouts, night_df):
 
 
 def prepare_output_dict(
-    night_recording_start,
-    night_recording_stop,
-    subject_df_list,
-    night_df,
-    desat_bouts,
-    subdesat_bouts,
-    sevdesat_bouts,
-    sustained_desat_bouts,
-    sustained_subdesat_bouts,
-    sustained_sevdesat_bouts,
-    settings
+            night_recording_start,
+            night_recording_stop,
+            subject_df_list,
+            night_df,
+            desat_bouts,
+            subdesat_bouts,
+            sevdesat_bouts,
+            sustained_desat_bouts,
+            sustained_subdesat_bouts,
+            sustained_sevdesat_bouts,
+            settings,
 ):
     output_dict = {
         "night start": night_recording_start,
@@ -263,11 +262,11 @@ def prepare_output_dict(
         "duration either artifact": night_df[
             (night_df["spo2_or_pulse_NA_filter"] == True) & (night_df["gaps"] == False)
         ]["interval"].sum(),
-        "duration of recording gaps": night_df[
-            (night_df["gaps"] == True) & (night_df["gaps"] == False)
-        ]["interval"].sum(),
         "maximum recording gap": night_df["interval"].max(),
         "cummulative any duration desat": night_df[night_df["desat"] == True][
+            "interval"
+        ].sum(),
+        "cumulative any duration subdesat": night_df[night_df["sub desat"] == True][
             "interval"
         ].sum(),
         "cummulative any duration sev desat": night_df[night_df["sev desat"] == True][
@@ -276,38 +275,19 @@ def prepare_output_dict(
         "count spike desat": night_df[night_df["spike desat"] == True]["ts"].count(),
         "count desat bouts": len(desat_bouts),
         "count desat started as subdesat bouts": len(
-            [i["started subdesat"] for i in desat_bouts if i == 1]
+            [i["started subdesat"] for i in desat_bouts if i["started subdesat"] == 1]
         ),
         "sum desat duration": np.sum([i["duration"] for i in desat_bouts]),
         "mean desat duration": np.mean([i["duration"] for i in desat_bouts]),
-        "median desat duration": np.median(
-            [i["duration"] for i in desat_bouts]
-        ),
-
+        "median desat duration": np.median([i["duration"] for i in desat_bouts]),
         "count subdesat bouts": len(subdesat_bouts),
         "sum subdesat duration": np.sum([i["duration"] for i in subdesat_bouts]),
-        "mean subdesat duration": np.mean(
-            [i["duration"] for i in subdesat_bouts]
-        ),
-        "median subdesat duration": np.mean(
-            [i["duration"] for i in subdesat_bouts]
-        ),
-
+        "mean subdesat duration": np.mean([i["duration"] for i in subdesat_bouts]),
+        "median subdesat duration": np.mean([i["duration"] for i in subdesat_bouts]),
         "count sustained desat bouts": len(sustained_desat_bouts),
-        "count sustained desat with pulse artifact bouts": len(
-            [1 for i in sustained_desat_bouts if i["artifact_pulse_duration"]>=settings["artifact duration threshold (sec)"]]
-        ),
-        "count sustained desat with spo2 artifact bouts": len(
-            [1 for i in sustained_desat_bouts if i["artifact_spo2_duration"]>=settings["artifact duration threshold (sec)"]]
-        ),
-        "count sustained desat with spo2 and pulse artifact bouts": len(
-            [1 for i in sustained_desat_bouts if i["artifact_spo2_and_pulse_duration"]>=settings["artifact duration threshold (sec)"]]
-        ),
-        "count sustained desat with spo2 or pulse artifact bouts": len(
-            [1 for i in sustained_desat_bouts if i["artifact_spo2_or_pulse_duration"]>=settings["artifact duration threshold (sec)"]]
-        ),
+
         "count sustained desat started as subdesat bouts": len(
-            [i["started subesat"] for i in sustained_desat_bouts if i == 1]
+            [i["started subesat"] for i in sustained_desat_bouts if i["started subdesat"] == 1]
         ),
         "sum sustained desat duration": np.sum(
             [i["duration"] for i in sustained_desat_bouts]
@@ -318,53 +298,575 @@ def prepare_output_dict(
         "median sustained desat duration": np.median(
             [i["duration"] for i in sustained_desat_bouts]
         ),
+
+
+        "count minimum duration desat started as subdesat zero artifact bouts": np.sum(
+            [
+                1
+                for i in desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"] and i["started subdesat"] == 1
+            ]
+        ),
+        "sum minimum duration desat started as subdesat zero artifact bout duration": np.sum(
+            [
+                i["duration"]
+                for i in desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"] and i["started subdesat"] == 1
+            ]
+        ),
+        "mean minimum duration desat started as subdesat zero artifact bout duration": np.mean(
+            [
+                i["duration"]
+                for i in desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"] and i["started subdesat"] == 1
+            ]
+        ),
+        "median minimum duration desat started as subdesat zero artifact bout duration": np.median(
+            [
+                i["duration"]
+                for i in desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"] and i["started subdesat"] == 1
+            ]
+        ),
+        "mean low_spo2 during minimum duration desat started as subdesat zero artifact bouts": np.mean(
+            [
+                i["low_spo2"]
+                for i in desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"] and i["started subdesat"] == 1
+            ]
+        ),
+        "median low_spo2 during minimum duration desat started as subdesat zero artifact bouts": np.median(
+            [
+                i["low_spo2"]
+                for i in desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"] and i["started subdesat"] == 1
+            ]
+        ),
+        "minimum low_spo2 during minimum duration desat started as subdesat zero artifact bouts": np.min(
+            [
+                i["low_spo2"]
+                for i in desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"] and i["started subdesat"] == 1
+            ]
+        ),
+        "mean mean_spo2 during minimum duration desat started as subdesat zero artifact bouts": np.mean(
+            [
+                i["mean_spo2"]
+                for i in desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"] and i["started subdesat"] == 1
+            ]
+        ),
+        "median mean_spo2 during minimum duration desat started as subdesat zero artifact bouts": np.median(
+            [
+                i["mean_spo2"]
+                for i in desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"] and i["started subdesat"] == 1
+            ]
+        ),
+        "minimum mean_spo2 during minimum duration desat started as subdesat zero artifact bouts": np.min(
+            [
+                i["mean_spo2"]
+                for i in desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"] and i["started subdesat"] == 1
+            ]
+        ),
+
+
+        "count sustained desat started as subdesat zero artifact bouts": np.sum(
+            [
+                1
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"] and i["started subdesat"] == 1
+            ]
+        ),
+        "sum sustained desat started as subdesat zero artifact bout duration": np.sum(
+            [
+                i["duration"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"] and i["started subdesat"] == 1
+            ]
+        ),
+        "mean sustained desat started as subdesat zero artifact bout duration": np.mean(
+            [
+                i["duration"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"] and i["started subdesat"] == 1
+            ]
+        ),
+        "median sustained desat started as subdesat zero artifact bout duration": np.median(
+            [
+                i["duration"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"] and i["started subdesat"] == 1
+            ]
+        ),
+        "mean low_spo2 during sustained desat started as subdesat zero artifact bouts": np.mean(
+            [
+                i["low_spo2"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"] and i["started subdesat"] == 1
+            ]
+        ),
+        "median low_spo2 during sustained desat started as subdesat zero artifact bouts": np.median(
+            [
+                i["low_spo2"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"] and i["started subdesat"] == 1
+            ]
+        ),
+        "minimum low_spo2 during sustained desat started as subdesat zero artifact bouts": np.min(
+            [
+                i["low_spo2"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"] and i["started subdesat"] == 1
+            ]
+        ),
+        "mean mean_spo2 during sustained desat started as subdesat zero artifact bouts": np.mean(
+            [
+                i["mean_spo2"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"] and i["started subdesat"] == 1
+            ]
+        ),
+        "median mean_spo2 during sustained desat started as subdesat zero artifact bouts": np.median(
+            [
+                i["mean_spo2"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"] and i["started subdesat"] == 1
+            ]
+        ),
+        "minimum mean_spo2 during sustained desat started as subdesat zero artifact bouts": np.min(
+            [
+                i["mean_spo2"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"] and i["started subdesat"] == 1
+            ]
+        ),
+
+
+        "count minimum duration desat zero artifact bouts": np.sum(
+            [
+                1
+                for i in desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"]
+            ]
+        ),
+        "sum minimum duration desat zero artifact bout duration": np.sum(
+            [
+                i["duration"]
+                for i in desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"]
+            ]
+        ),
+        "mean minimum duration desat zero artifact bout duration": np.mean(
+            [
+                i["duration"]
+                for i in desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"]
+            ]
+        ),
+        "median minimum duration desat zero artifact bout duration": np.median(
+            [
+                i["duration"]
+                for i in desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"]
+            ]
+        ),
+        "mean low_spo2 during minimum duration desat zero artifact bouts": np.mean(
+            [
+                i["low_spo2"]
+                for i in desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"]
+            ]
+        ),
+        "median low_spo2 during minimum duration desat zero artifact bouts": np.median(
+            [
+                i["low_spo2"]
+                for i in desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"]
+            ]
+        ),
+        "minimum low_spo2 during minimum duration desat zero artifact bouts": np.min(
+            [
+                i["low_spo2"]
+                for i in desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"]
+            ]
+        ),
+        "mean mean_spo2 during minimum duration desat zero artifact bouts": np.mean(
+            [
+                i["mean_spo2"]
+                for i in desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"]
+            ]
+        ),
+        "median mean_spo2 during minimum duration desat zero artifact bouts": np.median(
+            [
+                i["mean_spo2"]
+                for i in desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"]
+            ]
+        ),
+        "minimum mean_spo2 during minimum duration desat zero artifact bouts": np.min(
+            [
+                i["mean_spo2"]
+                for i in desat_bouts
+                if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"]
+            ]
+        ),
+
         "count sustained desat non-artifact filtered bouts": np.sum(
-            [1 for i in sustained_desat_bouts if i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+            [
+                1
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"]
+                < settings["artifact duration threshold (sec)"]
+            ]
+        ),
+        "count sustained desat zero artifact bouts": np.sum(
+            [
+                1
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"]
+                == 0
+            ]
         ),
         "count sustained desat with sev desat non-artifact filtered bouts": np.sum(
-            [1 for i in sustained_desat_bouts if i["duration_min_dur_sev_desat"]>0 and i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+            [
+                1
+                for i in sustained_desat_bouts
+                if i["duration_min_dur_sev_desat"] > 0
+                and i["artifact_spo2_or_pulse_duration"]
+                < settings["artifact duration threshold (sec)"]
+            ]
         ),
-        "sum sustained desat non-artifact filtered duration": np.sum(
-            [i["duration"] for i in sustained_desat_bouts if i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+        "count sustained desat with sev desat zero artifact bouts": np.sum(
+            [
+                1
+                for i in sustained_desat_bouts
+                if i["duration_min_dur_sev_desat"] > 0
+                and i["artifact_spo2_or_pulse_duration"]
+                == 0
+            ]
         ),
-        "sum sustained desat with sev desat non-artifact filtered duration": np.sum(
-            [i["duration"] for i in sustained_desat_bouts if i["duration_min_dur_sev_desat"]>0 and i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+        "sum sustained desat non-artifact filtered bout duration": np.sum(
+            [
+                i["duration"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"]
+                < settings["artifact duration threshold (sec)"]
+            ]
         ),
-        "mean sustained desat with sev desat non-artifact filtered duration": np.mean(
-            [i["duration"] for i in sustained_desat_bouts if i["duration_min_dur_sev_desat"]>0 and i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+        "sum sustained desat zero artifact bout duration": np.sum(
+            [
+                i["duration"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"]
+                == 0
+            ]
         ),
-        "median sustained desat with sev desat non-artifact filtered duration": np.median(
-            [i["duration"] for i in sustained_desat_bouts if i["duration_min_dur_sev_desat"]>0 and i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+        "sum sustained desat with sev desat non-artifact filtered bout duration": np.sum(
+            [
+                i["duration"]
+                for i in sustained_desat_bouts
+                if i["duration_min_dur_sev_desat"] > 0
+                and i["artifact_spo2_or_pulse_duration"]
+                < settings["artifact duration threshold (sec)"]
+            ]
         ),
-        "mean sustained desat time ratio of sev desat non-artifact filtered": np.mean(
-            [i["ratio_sev_desat"] for i in sustained_desat_bouts if i["duration_min_dur_sev_desat"]>0 and i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+        "sum sustained desat with sev desat zero artifact bout duration": np.sum(
+            [
+                i["duration"]
+                for i in sustained_desat_bouts
+                if i["duration_min_dur_sev_desat"] > 0
+                and i["artifact_spo2_or_pulse_duration"]
+                == 0
+            ]
         ),
-        "median sustained desat time ratio of sev desat non-artifact filtered": np.median(
-            [i["ratio_sev_desat"] for i in sustained_desat_bouts if i["duration_min_dur_sev_desat"]>0 and i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+        "mean sustained desat with sev desat non-artifact filtered bout duration": np.mean(
+            [
+                i["duration"]
+                for i in sustained_desat_bouts
+                if i["duration_min_dur_sev_desat"] > 0
+                and i["artifact_spo2_or_pulse_duration"]
+                < settings["artifact duration threshold (sec)"]
+            ]
         ),
-        "mean low_spo2 during sustained desat non-artifact filtered": np.mean(
-            [i["low_spo2"] for i in sustained_desat_bouts if i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+        "mean sustained desat with sev desat zero artifact bout duration": np.mean(
+            [
+                i["duration"]
+                for i in sustained_desat_bouts
+                if i["duration_min_dur_sev_desat"] > 0
+                and i["artifact_spo2_or_pulse_duration"]
+                == 0
+            ]
         ),
-        "mean mean_spo2 during sustained desat non-artifact filtered": np.mean(
-            [i["mean_spo2"] for i in sustained_desat_bouts if i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+        "median sustained desat with sev desat non-artifact filtered bout duration": np.median(
+            [
+                i["duration"]
+                for i in sustained_desat_bouts
+                if i["duration_min_dur_sev_desat"] > 0
+                and i["artifact_spo2_or_pulse_duration"]
+                < settings["artifact duration threshold (sec)"]
+            ]
         ),
-        "median median_spo2 during sustained desat non-artifact filtered": np.median(
-            [i["median_spo2"] for i in sustained_desat_bouts if i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+        "median sustained desat with sev desat zero artifact bout duration": np.median(
+            [
+                i["duration"]
+                for i in sustained_desat_bouts
+                if i["duration_min_dur_sev_desat"] > 0
+                and i["artifact_spo2_or_pulse_duration"]
+                == 0
+            ]
         ),
-        "mean low_pulse during sustained desat non-artifact filtered": np.mean(
-            [i["low_pulse"] for i in sustained_desat_bouts if i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+        "mean sustained desat time ratio of sev desat non-artifact filtered bouts": np.mean(
+            [
+                i["ratio_sev_desat"]
+                for i in sustained_desat_bouts
+                if i["duration_min_dur_sev_desat"] > 0
+                and i["artifact_spo2_or_pulse_duration"]
+                < settings["artifact duration threshold (sec)"]
+            ]
         ),
-        "mean high_pulse during sustained desat non-artifact filtered": np.mean(
-            [i["high_pulse"] for i in sustained_desat_bouts if i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+        "mean sustained desat time ratio of sev desat zero artifact filtered bouts": np.mean(
+            [
+                i["ratio_sev_desat"]
+                for i in sustained_desat_bouts
+                if i["duration_min_dur_sev_desat"] > 0
+                and i["artifact_spo2_or_pulse_duration"]
+                == 0
+            ]
         ),
-        "mean mean_pulse during sustained desat non-artifact filtered": np.mean(
-            [i["mean_pulse"] for i in sustained_desat_bouts if i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+        "median sustained desat time ratio of sev desat non-artifact filtered bouts": np.median(
+            [
+                i["ratio_sev_desat"]
+                for i in sustained_desat_bouts
+                if i["duration_min_dur_sev_desat"] > 0
+                and i["artifact_spo2_or_pulse_duration"]
+                < settings["artifact duration threshold (sec)"]
+            ]
         ),
-        "median median_pulse during sustained desat non-artifact filtered": np.median(
-            [i["median_pulse"] for i in sustained_desat_bouts if i["artifact_spo2_or_pulse_duration"]<settings["artifact duration threshold (sec)"]]
+        "median sustained desat time ratio of sev desat zero artifact bouts": np.median(
+            [
+                i["ratio_sev_desat"]
+                for i in sustained_desat_bouts
+                if i["duration_min_dur_sev_desat"] > 0
+                and i["artifact_spo2_or_pulse_duration"]
+                < settings["artifact duration threshold (sec)"]
+            ]
         ),
-        "mean pulse during non_desat and non_artifact": night_df[(night_df["spo2"]>settings["desat threshold"]) & (night_df["spo2_or_pulse_NA_filter"] == False)]["pulse"].mean()
-        
+
+        "count sustained desat with sustained sev desat zero artifact bouts": np.sum(
+            [
+                1
+                for i in sustained_desat_bouts
+                if i["duration_min_dur_sev_desat"] >= settings["sustained desat interval (sec)"]
+                and i["artifact_spo2_or_pulse_duration"]
+                == 0
+            ]
+        ),
+        "mean low_spo2 with sustained sev desat zero artifact bouts": np.mean(
+            [
+                i["low_spo2"]
+                for i in sustained_desat_bouts
+                if i["duration_min_dur_sev_desat"] >= settings["sustained desat interval (sec)"]
+                and i["artifact_spo2_or_pulse_duration"]
+                == 0
+            ]
+        ),
+        "median low_spo2 with sustained sev desat zero artifact bouts": np.median(
+            [
+                i["low_spo2"]
+                for i in sustained_desat_bouts
+                if i["duration_min_dur_sev_desat"] >= settings["sustained desat interval (sec)"]
+                and i["artifact_spo2_or_pulse_duration"]
+                == 0
+            ]
+        ),
+        "minimum low_spo2 with sustained sev desat zero artifact bouts": np.min(
+            [
+                i["low_spo2"]
+                for i in sustained_desat_bouts
+                if i["duration_min_dur_sev_desat"] >= settings["sustained desat interval (sec)"]
+                and i["artifact_spo2_or_pulse_duration"]
+                == 0
+            ]
+        ),
+        "mean mean_spo2 with sustained sev desat zero artifact bouts": np.mean(
+            [
+                i["mean_spo2"]
+                for i in sustained_desat_bouts
+                if i["duration_min_dur_sev_desat"] >= settings["sustained desat interval (sec)"]
+                and i["artifact_spo2_or_pulse_duration"]
+                == 0
+            ]
+        ),
+        "median mean_spo2 with sustained sev desat zero artifact bouts": np.median(
+            [
+                i["mean_spo2"]
+                for i in sustained_desat_bouts
+                if i["duration_min_dur_sev_desat"] >= settings["sustained desat interval (sec)"]
+                and i["artifact_spo2_or_pulse_duration"]
+                == 0
+            ]
+        ),
+        "minimum mean_spo2 with sustained sev desat zero artifact bouts": np.min(
+            [
+                i["mean_spo2"]
+                for i in sustained_desat_bouts
+                if i["duration_min_dur_sev_desat"] >= settings["sustained desat interval (sec)"]
+                and i["artifact_spo2_or_pulse_duration"]
+                == 0
+            ]
+        ),
+
+        "mean low_spo2 during sustained desat non-artifact filtered bouts": np.mean(
+            [
+                i["low_spo2"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"]
+                < settings["artifact duration threshold (sec)"]
+            ]
+        ),
+        "mean low_spo2 during sustained desat zero artifact bouts": np.mean(
+            [
+                i["low_spo2"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"]
+                == 0
+            ]
+        ),
+        "minimum low_spo2 during sustained desat non-artifact filtered bouts": np.min(
+            [
+                i["low_spo2"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"]
+                < settings["artifact duration threshold (sec)"]
+            ]
+        ),
+        "minimum low_spo2 during sustained desat zero artifact bouts": np.min(
+            [
+                i["low_spo2"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"]
+                == 0
+            ]
+        ),
+        "mean mean_spo2 during sustained desat non-artifact filtered bouts": np.mean(
+            [
+                i["mean_spo2"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"]
+                < settings["artifact duration threshold (sec)"]
+            ]
+        ),
+        "mean mean_spo2 during sustained desat zero artifact bouts": np.mean(
+            [
+                i["mean_spo2"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"]
+                == 0
+            ]
+        ),
+        "median median_spo2 during sustained desat non-artifact filtered bouts": np.median(
+            [
+                i["median_spo2"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"]
+                < settings["artifact duration threshold (sec)"]
+            ]
+        ),
+        "median median_spo2 during sustained desat zero artifact bouts": np.median(
+            [
+                i["median_spo2"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"]
+                == 0
+            ]
+        ),
+        "mean low_pulse during sustained desat non-artifact filtered bouts": np.mean(
+            [
+                i["low_pulse"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"]
+                < settings["artifact duration threshold (sec)"]
+            ]
+        ),
+        "mean low_pulse during sustained desat zero artifact bouts": np.mean(
+            [
+                i["low_pulse"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"]
+                == 0
+            ]
+        ),
+        "mean high_pulse during sustained desat non-artifact filtered bouts": np.mean(
+            [
+                i["high_pulse"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"]
+                < settings["artifact duration threshold (sec)"]
+            ]
+        ),
+        "mean high_pulse during sustained desat zero artifact bouts": np.mean(
+            [
+                i["high_pulse"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"]
+                == 0
+            ]
+        ),
+        "mean mean_pulse during sustained desat non-artifact filtered bouts": np.mean(
+            [
+                i["mean_pulse"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"]
+                < settings["artifact duration threshold (sec)"]
+            ]
+        ),
+        "mean mean_pulse during sustained desat zero artifact bouts": np.mean(
+            [
+                i["mean_pulse"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"]
+                == 0
+            ]
+        ),
+        "median median_pulse during sustained desat non-artifact filtered bouts": np.median(
+            [
+                i["median_pulse"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"]
+                < settings["artifact duration threshold (sec)"]
+            ]
+        ),
+        "median median_pulse during sustained desat zero artifact bouts": np.median(
+            [
+                i["median_pulse"]
+                for i in sustained_desat_bouts
+                if i["artifact_spo2_or_pulse_duration"]
+                == 0
+            ]
+        ),
+        "mean spo2 during non_desat and non_artifact": night_df[
+            (night_df["spo2"] > settings["desat threshold"])
+            & (night_df["spo2_or_pulse_NA_filter"] == False)
+        ]["spo2"].mean(),
+        "median spo2 during non_desat and non_artifact": night_df[
+            (night_df["spo2"] > settings["desat threshold"])
+            & (night_df["spo2_or_pulse_NA_filter"] == False)
+        ]["spo2"].median(),
+        "minimum spo2 during non_desat and non_artifact": night_df[
+            (night_df["spo2"] > settings["desat threshold"])
+            & (night_df["spo2_or_pulse_NA_filter"] == False)
+        ]["spo2"].min(),
+        "mean pulse during non_desat and non_artifact": night_df[
+            (night_df["spo2"] > settings["desat threshold"])
+            & (night_df["spo2_or_pulse_NA_filter"] == False)
+        ]["pulse"].mean(),
+        "mean spo2 overall": night_df["spo2"].mean(),
+        "median spo2 overall": night_df["spo2"].median(),
+        "minimum spo2 overall": night_df["spo2"].min()
     }
     return output_dict
 
@@ -377,7 +879,7 @@ def main():
     # %%
     # get input files
     input_file_path = "./sample data/pooled/"
-    #input_file_path = "./sample data/test_cases/"
+    # input_file_path = "./sample data/test_cases/"
     # get settings file
     settings_file_path = "./sample settings.xlsx"
     # get output path
@@ -524,27 +1026,28 @@ def main():
         night_recording_stop = night_df["ts"].iloc[-1]
 
         # % determine which overnight bin to use
-        duration = night_df[night_df["gaps"]==False]["interval"].sum()
+        duration = night_df[night_df["gaps"] == False]["interval"].sum()
         duration_hours = int(
-            (
-                duration
-                + settings["night duration round up within (minutes)"] * 60
-            )
+            (duration + settings["night duration round up within (minutes)"] * 60)
             / 60
             / 60
         )
-        
+
         duration_bin = identify_bin(
             duration_hours, list(output_dict["night_duration_bins"].keys())
         )
-        logger.info(f'duration (sec):{duration}; duration (hrs):{duration_hours}; bin: {duration_bin}')
+        logger.info(
+            f"duration (sec):{duration}; duration (hrs):{duration_hours}; bin: {duration_bin}"
+        )
 
         # % score desat events
         night_df["desat"] = night_df["fixed_spo2"] < settings["desat threshold"]
         night_df["sub desat"] = (
             night_df["fixed_spo2"] <= settings["desat subthreshold"]
         ) & (night_df["fixed_spo2"] >= settings["desat threshold"])
-        night_df["sev desat"] = night_df["fixed_spo2"] < settings["desat severe threshold"]
+        night_df["sev desat"] = (
+            night_df["fixed_spo2"] < settings["desat severe threshold"]
+        )
         night_df["spike desat"] = night_df["diff_spo2"] <= settings["desat spike"]
 
         # %% rescore desats that occur after recording gaps to prevent gap inclusion
@@ -560,21 +1063,21 @@ def main():
         night_df["min_dur_desat_trimmed"] = night_df.rolling(
             window=min_duration, on="ts", center=True
         )["desat"].min()
-        night_df["min_dur_desat"] = night_df.rolling(window=min_duration, on="ts", center=True)[
-            "min_dur_desat_trimmed"
-        ].max()
+        night_df["min_dur_desat"] = night_df.rolling(
+            window=min_duration, on="ts", center=True
+        )["min_dur_desat_trimmed"].max()
         night_df["min_dur_sub_desat_trimmed"] = night_df.rolling(
             window=min_duration, on="ts", center=True
         )["sub desat"].min()
-        night_df["min_dur_sub_desat"] = night_df.rolling(window=min_duration, on="ts", center=True)[
-            "min_dur_sub_desat_trimmed"
-        ].max()
+        night_df["min_dur_sub_desat"] = night_df.rolling(
+            window=min_duration, on="ts", center=True
+        )["min_dur_sub_desat_trimmed"].max()
         night_df["min_dur_sev_desat_trimmed"] = night_df.rolling(
             window=min_duration, on="ts", center=True
         )["sev desat"].min()
-        night_df["min_dur_sev_desat"] = night_df.rolling(window=min_duration, on="ts", center=True)[
-            "min_dur_sev_desat_trimmed"
-        ].max()
+        night_df["min_dur_sev_desat"] = night_df.rolling(
+            window=min_duration, on="ts", center=True
+        )["min_dur_sev_desat_trimmed"].max()
 
         night_df["min_dur_desat_bout_start"] = (
             night_df["min_dur_desat"].astype(int).diff()
@@ -596,12 +1099,12 @@ def main():
             night_df["min_dur_sub_desat_bout_start"] == -1
         ]
 
-        sevdesat_start_bouts = (
-            night_df["ts"][night_df["min_dur_sev_desat_bout_start"] == 1]
-        )
-        sevdesat_stop_bouts = (
-            night_df["ts"][night_df["min_dur_sev_desat_bout_start"]== -1]
-        )
+        sevdesat_start_bouts = night_df["ts"][
+            night_df["min_dur_sev_desat_bout_start"] == 1
+        ]
+        sevdesat_stop_bouts = night_df["ts"][
+            night_df["min_dur_sev_desat_bout_start"] == -1
+        ]
 
         sustained_duration = pd.Timedelta(
             seconds=settings["sustained desat interval (sec)"]
@@ -690,7 +1193,7 @@ def main():
             sustained_desat_bouts,
             sustained_subdesat_bouts,
             sustained_sevdesat_bouts,
-            settings
+            settings,
         )
         output_dict["night_duration_bins"][duration_bin][subject_id] = output_summary
 
