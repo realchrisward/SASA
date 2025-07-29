@@ -38,6 +38,12 @@ def build_timestamp(row):
     return ts
 
 
+def modified_min(array_data):
+    try:
+        return np.nanmin(array_data)
+    except:
+        return np.nan
+
 def night_time_check(ts, night_start=None, night_stop=None):
     """
     check if a timestamp 'ts' is between
@@ -287,7 +293,7 @@ def prepare_output_dict(
         "count sustained desat bouts": len(sustained_desat_bouts),
 
         "count sustained desat started as subdesat bouts": len(
-            [i["started subesat"] for i in sustained_desat_bouts if i["started subdesat"] == 1]
+            [i["started subdesat"] for i in sustained_desat_bouts if i["started subdesat"] == 1]
         ),
         "sum sustained desat duration": np.sum(
             [i["duration"] for i in sustained_desat_bouts]
@@ -342,7 +348,7 @@ def prepare_output_dict(
                 if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"] and i["started subdesat"] == 1
             ]
         ),
-        "minimum low_spo2 during minimum duration desat started as subdesat zero artifact bouts": np.min(
+        "minimum low_spo2 during minimum duration desat started as subdesat zero artifact bouts": modified_min(
             [
                 i["low_spo2"]
                 for i in desat_bouts
@@ -363,7 +369,7 @@ def prepare_output_dict(
                 if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"] and i["started subdesat"] == 1
             ]
         ),
-        "minimum mean_spo2 during minimum duration desat started as subdesat zero artifact bouts": np.min(
+        "minimum mean_spo2 during minimum duration desat started as subdesat zero artifact bouts": modified_min(
             [
                 i["mean_spo2"]
                 for i in desat_bouts
@@ -414,7 +420,7 @@ def prepare_output_dict(
                 if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"] and i["started subdesat"] == 1
             ]
         ),
-        "minimum low_spo2 during sustained desat started as subdesat zero artifact bouts": np.min(
+        "minimum low_spo2 during sustained desat started as subdesat zero artifact bouts": modified_min(
             [
                 i["low_spo2"]
                 for i in sustained_desat_bouts
@@ -435,7 +441,7 @@ def prepare_output_dict(
                 if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"] and i["started subdesat"] == 1
             ]
         ),
-        "minimum mean_spo2 during sustained desat started as subdesat zero artifact bouts": np.min(
+        "minimum mean_spo2 during sustained desat started as subdesat zero artifact bouts": modified_min(
             [
                 i["mean_spo2"]
                 for i in sustained_desat_bouts
@@ -486,7 +492,7 @@ def prepare_output_dict(
                 if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"]
             ]
         ),
-        "minimum low_spo2 during minimum duration desat zero artifact bouts": np.min(
+        "minimum low_spo2 during minimum duration desat zero artifact bouts": modified_min(
             [
                 i["low_spo2"]
                 for i in desat_bouts
@@ -507,7 +513,7 @@ def prepare_output_dict(
                 if i["artifact_spo2_or_pulse_duration"] == 0 and i["duration"] >= settings["minimum desat interval (sec)"]
             ]
         ),
-        "minimum mean_spo2 during minimum duration desat zero artifact bouts": np.min(
+        "minimum mean_spo2 during minimum duration desat zero artifact bouts": modified_min(
             [
                 i["mean_spo2"]
                 for i in desat_bouts
@@ -683,7 +689,7 @@ def prepare_output_dict(
                 == 0
             ]
         ),
-        "minimum low_spo2 with sustained sev desat zero artifact bouts": np.min(
+        "minimum low_spo2 with sustained sev desat zero artifact bouts": modified_min(
             [
                 i["low_spo2"]
                 for i in sustained_desat_bouts
@@ -710,7 +716,7 @@ def prepare_output_dict(
                 == 0
             ]
         ),
-        "minimum mean_spo2 with sustained sev desat zero artifact bouts": np.min(
+        "minimum mean_spo2 with sustained sev desat zero artifact bouts": modified_min(
             [
                 i["mean_spo2"]
                 for i in sustained_desat_bouts
@@ -736,7 +742,7 @@ def prepare_output_dict(
                 == 0
             ]
         ),
-        "minimum low_spo2 during sustained desat non-artifact filtered bouts": np.min(
+        "minimum low_spo2 during sustained desat non-artifact filtered bouts": modified_min(
             [
                 i["low_spo2"]
                 for i in sustained_desat_bouts
@@ -744,7 +750,7 @@ def prepare_output_dict(
                 < settings["artifact duration threshold (sec)"]
             ]
         ),
-        "minimum low_spo2 during sustained desat zero artifact bouts": np.min(
+        "minimum low_spo2 during sustained desat zero artifact bouts": modified_min(
             [
                 i["low_spo2"]
                 for i in sustained_desat_bouts
