@@ -71,12 +71,12 @@
      <rect>
       <x>30</x>
       <y>40</y>
-      <width>47</width>
+      <width>320</width>
       <height>13</height>
      </rect>
     </property>
     <property name="text">
-     <string>TextLabel</string>
+     <string>Input Path</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_settings">
@@ -84,12 +84,12 @@
      <rect>
       <x>30</x>
       <y>90</y>
-      <width>47</width>
+      <width>320</width>
       <height>13</height>
      </rect>
     </property>
     <property name="text">
-     <string>TextLabel</string>
+     <string>Settings File</string>
     </property>
    </widget>
    <widget class="QLabel" name="label_output">
@@ -97,12 +97,12 @@
      <rect>
       <x>30</x>
       <y>140</y>
-      <width>47</width>
+      <width>320</width>
       <height>13</height>
      </rect>
     </property>
     <property name="text">
-     <string>TextLabel</string>
+     <string>Output Path</string>
     </property>
    </widget>
    <widget class="QTextEdit" name="textEdit_log">

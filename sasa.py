@@ -10,7 +10,7 @@ License: MIT-X
 
 GUI wrapper for SASA
 """
-__version__ = "0.1.0"
+__version__ = "0.1.3"
 __license__ = "MIT License"
 __license_text__ = """
 MIT License
@@ -43,7 +43,7 @@ import logging
 import os
 from PySide6 import QtWidgets
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtCore import QFile
+from PySide6.QtCore import QFile, QThread
 import sys
 
 
@@ -166,6 +166,17 @@ class GUI_Logger:
             )
 
 
+class WorkerThread(QThread):
+    def __init__(self, func, *args, **kwargs):
+        super().__init__()
+        self.func = func
+        self.args = args
+        self.kwargs = kwargs
+
+    def run(self):
+        self.func(*self.args, **self.kwargs)
+
+
 class MainWindow(QtWidgets.QMainWindow):
 
     def __init__(self, ui):
@@ -196,28 +207,33 @@ class MainWindow(QtWidgets.QMainWindow):
             None, "Select Input Folder"
         )
         self.logger.info(f"input path set: {self.input_path}")
+        self.label_input.setText(f"Input Path: {self.input_path}")
 
     def action_output(self):
         self.output_path = QtWidgets.QFileDialog.getExistingDirectory(
             None, "Select Output Folder"
         )
         self.logger.info(f"output path set: {self.output_path}")
+        self.label_output.setText(f"Output Path: {self.output_path}")
 
     def action_settings(self):
         self.settings_path = QtWidgets.QFileDialog.getOpenFileName(
             None, "Select Settings File", "", "Excel Files (*.xlsx);;All Files (*)"
-        )
+        )[0]
         self.logger.info(f"settings path set: {self.settings_path}")
+        self.label_settings.setText(f"Settings File: {self.settings_path}")
 
     def action_run(self):
         if self.input_path and self.output_path and self.settings_path:
             self.logger.info("launching run")
-            main.main(
+            self.run_worker = WorkerThread(
+                main.main,
                 input_file_path=self.input_path,
                 output_file_path=self.output_path,
                 settings_file_path=self.settings_path,
                 logger=self.logger,
             )
+            self.run_worker.start()
         else:
             self.logger.warning(
                 "missing input, settings, or output paths. please complete entry and try again"

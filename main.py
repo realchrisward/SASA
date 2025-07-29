@@ -9,12 +9,13 @@ Created: 2025
 License: MIT-X
 """
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 
 # %% import libraries
 import pandas as pd
 import numpy as np
 import os
+import re
 import logging
 
 
@@ -931,25 +932,31 @@ def main(
     if not logger:
         logger = logging.getLogger()
         logger.setLevel(logging.DEBUG)
-
-    log_formatter = logging.Formatter(
-        "%(asctime)s | %(threadName)s | %(levelname)-5.5s |  %(message)s"
-    )
-    file_handler = logging.FileHandler(os.path.join(output_file_path, "log.log"))
-    file_handler.setFormatter(log_formatter)
-    logger.addHandler(file_handler)
-    console_handler = logging.StreamHandler()
-    console_handler.setFormatter(log_formatter)
-    logger.addHandler(console_handler)
+        log_formatter = logging.Formatter(
+            "%(asctime)s | %(threadName)s | %(levelname)-5.5s |  %(message)s"
+        )
+        file_handler = logging.FileHandler(os.path.join(output_file_path, "log.log"))
+        file_handler.setFormatter(log_formatter)
+        logger.addHandler(file_handler)
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(log_formatter)
+        logger.addHandler(console_handler)
+    else:
+        logger.info("using external logger")
 
     logger.info("log started")
+    logger.info(f"input_file_path:{input_file_path}")
+    logger.info(f"output_file_path:{output_file_path}")
+    logger.info(f"settings_file_path:{settings_file_path}")
 
     # %% collect data from file paths
+    logger.info("collecting settings")
     settings = (
         pd.read_excel(settings_file_path, sheet_name="settings")
         .set_index("parameter")["value"]
         .to_dict()
     )
+    logger.info("checking for file time fix needs")
     file_time_fix = pd.read_excel(settings_file_path, sheet_name="file time fix")
 
     # %% list of files in input_file_path
@@ -958,11 +965,15 @@ def main(
         for f in os.listdir(input_file_path)
         if f.endswith(".csv")
     ]
-    logger.info(f"input files found: {file_list}")
+    logger.info(f"input files found: {len(file_list)} files found")
 
     file_dict = {}
     for f in file_list:
-        subject_id = os.path.splitext(os.path.basename(f))[0].split("_")[0]
+        subject_id = re.match(
+            re.compile("(?P<id>.+?)[a-z_]*.csv"), os.path.basename(f)
+        ).group("id")
+        # subject_id = os.path.splitext(os.path.basename(f))[0].split("_")[0]
+        logging.info(f"{subject_id} - {os.path.basename(f)}")
         if subject_id in file_dict:
             file_dict[subject_id].append(f)
         else:
