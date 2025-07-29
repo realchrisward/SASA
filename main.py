@@ -973,7 +973,7 @@ def main(
             re.compile("(?P<id>.+?)[a-z_]*.csv"), os.path.basename(f)
         ).group("id")
         # subject_id = os.path.splitext(os.path.basename(f))[0].split("_")[0]
-        logging.info(f"{subject_id} - {os.path.basename(f)}")
+        logger.info(f"{subject_id} - {os.path.basename(f)}")
         if subject_id in file_dict:
             file_dict[subject_id].append(f)
         else:
@@ -988,7 +988,7 @@ def main(
         settings["night duration bin size (hours)"],
     ):
         output_dict["night_duration_bins"][i] = {}
-        logging.info(f"adding {i} hour night duration bin")
+        logger.info(f"adding {i} hour night duration bin")
     if (
         settings["complete night duration (hours)"]
         not in output_dict["night_duration_bins"]
@@ -996,15 +996,16 @@ def main(
         output_dict["night_duration_bins"][
             settings["complete night duration (hours)"]
         ] = {}
-        logging.info(
+        logger.info(
             f'adding complete night duration bin ({settings["complete night duration (hours)"]} hrs)'
         )
     if 0 not in output_dict["night_duration_bins"]:
         output_dict["night_duration_bins"][0] = {}
-        logging.info("adding 0 hr duration bin (insufficient data bin)")
+        logger.info("adding 0 hr duration bin (insufficient data bin)")
     # %% loop through file list
-
+    logger.info("looping through subjects in dataset")
     for subject_id, subject_file_list in file_dict.items():
+        logger.info(f"working on: {subject_id} - ','.join(subject_file_list)")
         subject_df_list = []
         output_summary = {}
         for f in subject_file_list:

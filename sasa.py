@@ -43,7 +43,7 @@ import logging
 import os
 from PySide6 import QtWidgets
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtCore import QFile, QThread
+from PySide6.QtCore import QFile, QObject, QThread, Signal, Slot
 import sys
 
 
@@ -172,9 +172,30 @@ class WorkerThread(QThread):
         self.func = func
         self.args = args
         self.kwargs = kwargs
+        self.logger = kwargs.pop("logger")
 
     def run(self):
-        self.func(*self.args, **self.kwargs)
+        self.func(*self.args, **self.kwargs, logger=self.logger)
+
+
+class MyLog(QObject):
+    signal = Signal(str)
+
+    def __init__(self):
+        super().__init__()
+
+
+class ThreadLogger(logging.Handler):
+    def __init__(self):
+        super().__init__()
+        self.log = MyLog()
+        self.info = self.emit
+        self.debug = self.emit
+        self.warning = self.emit
+        self.error = self.emit
+
+    def emit(self, record):
+        self.log.signal.emit(record)
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -231,13 +252,18 @@ class MainWindow(QtWidgets.QMainWindow):
                 input_file_path=self.input_path,
                 output_file_path=self.output_path,
                 settings_file_path=self.settings_path,
-                logger=self.logger,
+                logger=ThreadLogger(),
             )
+            self.run_worker.logger.log.signal.connect(self.write_log)
             self.run_worker.start()
         else:
             self.logger.warning(
                 "missing input, settings, or output paths. please complete entry and try again"
             )
+
+    @Slot(object)
+    def write_log(self, log_text):
+        self.logger.info(log_text)
 
     # create the application
 
